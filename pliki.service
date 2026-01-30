@@ -1,0 +1,21 @@
+[Unit]
+Description=Gunicorn instance to serve pliki-xsus
+After=network.target
+
+[Service]
+# User and Group to run the application
+User=www-data
+Group=www-data
+
+# Path to the application directory
+WorkingDirectory=/var/www/pliki-xsus
+
+# Environment variables (if needed)
+Environment="PATH=/var/www/pliki-xsus/venv/bin"
+Environment="SECRET_KEY=zmieni_to_na_trudne_haslo"
+
+# Command to start Gunicorn
+ExecStart=/var/www/pliki-xsus/venv/bin/gunicorn --workers 3 --bind 127.0.0.1:8000 app:app
+
+[Install]
+WantedBy=multi-user.target

@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="text-center mb-5">
+    <h1 class="display-4 fw-bold">Dostępne Pliki</h1>
+    <p class="lead text-muted">Pobieraj pliki z maksymalną prędkością</p>
+</div>
+
+<div class="row g-4">
+    {% for file in files %}
+    <div class="col-md-6 col-lg-4">
+        <div class="card h-100 p-4 text-center">
+            <div class="card-body">
+                <div class="file-icon">
+                    <i class="fa-solid fa-file-arrow-down"></i>
+                </div>
+                <h5 class="card-title text-truncate" title="{{ file.original_filename }}">
+                    {{ file.original_filename }}
+                </h5>
+                <p class="card-text text-muted">
+                    <small>Rozmiar: {{ format_size(file.size) }}</small><br>
+                    <small>Data: {{ file.upload_date.strftime('%Y-%m-%d %H:%M') }}</small>
+                </p>
+                <a href="{{ url_for('download_file', file_id=file.id) }}" class="btn btn-primary w-100 rounded-pill">
+                    <i class="fa-solid fa-download"></i> Pobierz
+                </a>
+            </div>
+        </div>
+    </div>
+    {% else %}
+    <div class="col-12 text-center">
+        <div class="alert alert-info">Brak dostępnych plików do pobrania.</div>
+    </div>
+    {% endfor %}
+</div>
+{% endblock %}

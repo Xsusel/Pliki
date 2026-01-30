@@ -1,0 +1,41 @@
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background-color: #f8f9fa;
+}
+
+.card {
+    border: none;
+    border-radius: 12px;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+    transition: transform 0.2s;
+}
+
+.card:hover {
+    transform: translateY(-5px);
+}
+
+.file-icon {
+    font-size: 3rem;
+    color: #0d6efd;
+    margin-bottom: 1rem;
+}
+
+.dropzone {
+    border: 2px dashed #0d6efd;
+    border-radius: 12px;
+    padding: 3rem;
+    text-align: center;
+    background-color: #e9ecef;
+    cursor: pointer;
+    transition: background-color 0.3s;
+}
+
+.dropzone:hover {
+    background-color: #dde0e3;
+}
+
+.progress-height {
+    height: 25px;
+    font-size: 0.9rem;
+    border-radius: 12px;
+}
