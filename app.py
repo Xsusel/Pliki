@@ -1,6 +1,7 @@
 import os
 import shutil
 import uuid
+from datetime import datetime, timezone
 from flask import Flask, render_template, request, redirect, url_for, flash, abort, Response
 from werkzeug.utils import secure_filename
 from werkzeug.security import generate_password_hash, check_password_hash
@@ -149,6 +150,88 @@ def download_file(file_id):
     response.headers['Content-Disposition'] = f'attachment; filename="{file.original_filename}"'
 
     return response
+
+def sync_files_logic():
+    """Scans uploads folder and adds missing files to DB."""
+    upload_folder = app.config['UPLOAD_FOLDER']
+    if not os.path.exists(upload_folder):
+        return 0
+
+    count = 0
+    # List files
+    try:
+        files_on_disk = os.listdir(upload_folder)
+    except OSError:
+        return 0
+
+    for filename in files_on_disk:
+        if filename.startswith('.'):
+            continue
+
+        file_path = os.path.join(upload_folder, filename)
+
+        # Skip directories
+        if not os.path.isfile(file_path):
+            continue
+
+        # Secure filename
+        safe_name = secure_filename(filename)
+
+        # Rename if needed
+        if safe_name != filename:
+            safe_path = os.path.join(upload_folder, safe_name)
+
+            # Handle collision
+            if os.path.exists(safe_path):
+                base, ext = os.path.splitext(safe_name)
+                safe_name = f"{base}_{uuid.uuid4().hex[:8]}{ext}"
+                safe_path = os.path.join(upload_folder, safe_name)
+
+            try:
+                os.rename(file_path, safe_path)
+                filename = safe_name
+                file_path = safe_path
+            except OSError as e:
+                print(f"Error renaming {filename}: {e}")
+                continue
+
+        # Check DB
+        if not File.query.filter_by(filename=filename).first():
+            try:
+                size = os.path.getsize(file_path)
+                ctime = os.path.getctime(file_path)
+                # Convert to naive UTC to match datetime.utcnow()
+                upload_date = datetime.fromtimestamp(ctime, timezone.utc).replace(tzinfo=None)
+
+                new_file = File(
+                    filename=filename,
+                    original_filename=filename, # Use safe name to avoid confusion
+                    size=size,
+                    upload_date=upload_date
+                )
+                db.session.add(new_file)
+                count += 1
+            except OSError as e:
+                print(f"Error processing {filename}: {e}")
+                continue
+
+    if count > 0:
+        db.session.commit()
+
+    return count
+
+@app.cli.command("sync-files")
+def sync_files_command():
+    """Synchronize files from upload directory to database."""
+    count = sync_files_logic()
+    print(f"Synchronized {count} new files.")
+
+@app.route('/admin/sync_files', methods=['POST'])
+@login_required
+def sync_files():
+    count = sync_files_logic()
+    flash(f'Zsynchronizowano {count} nowych plików.', 'success')
+    return redirect(url_for('dashboard'))
 
 if __name__ == '__main__':
     with app.app_context():
