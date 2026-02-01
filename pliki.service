@@ -15,7 +15,7 @@ Environment="PATH=/var/www/pliki-xsus/venv/bin"
 Environment="SECRET_KEY=zmieni_to_na_trudne_haslo"
 
 # Command to start Gunicorn
-ExecStart=/var/www/pliki-xsus/venv/bin/gunicorn --workers 3 --bind 127.0.0.1:8000 app:app
+ExecStart=/var/www/pliki-xsus/venv/bin/gunicorn --workers 3 --timeout 3600 --bind 127.0.0.1:8000 app:app
 
 [Install]
 WantedBy=multi-user.target
